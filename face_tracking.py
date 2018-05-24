@@ -62,7 +62,11 @@ class Vision:
 				if save:
 					i+=1
 					face = img[y:y+h, x:x+w]
-					cv2.imwrite('%3d.jpg'%i, face)
+					cv2.imwrite('test%d.jpg'%i, face)
+					
+					test = cv2.imread('test%d.jpg'%i)
+					cv2.imshow('test', test)
+
 				cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
 			cv2.imshow('Photo', img)
 			k = cv2.waitKey(0)
@@ -83,10 +87,10 @@ class Vision:
 						if save:
 							i+=1
 							face = frame[y:y+h, x:x+w]
-							cv2.imwrite('faces/%3d.png'%i, face)
+							cv2.imwrite('faces/arnab%d.jpg'%i, face)
 						cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 					cv2.imshow('Video', frame)
-					out.write(frame)
+					#out.write(frame)
 					k = cv2.waitKey(10) & 0xff
 					if k == 27 or k == ord('q'):
 						break
@@ -97,10 +101,18 @@ class Vision:
 			print('Nothing to show.')
 		cv2.destroyAllWindows()
 		return True
+	
+	'''
+	Tracking is done using camshift method of OpenCV module.
+	This method takes nothing as a input, all inputs are 
+	already there in the object defination.
+	After calling this method to an object, it plays the video 
+	in self.__video (video_path) with tracking the object in the self.__image (image_path).
+	'''
 
 	def track(self):
 		cap = cv2.VideoCapture(self.__video)
-		r,h,c,w = 250,90,400,125
+		r,h,c,w = 150,90,200,125
 		track_window = (c,r,w,h)
 		term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 		while (1):
@@ -123,5 +135,6 @@ class Vision:
 
 		cv2.destroyAllWindows()
 		cap.release()
+		return True
 
 

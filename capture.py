@@ -17,7 +17,7 @@ def detect_faces(i, f_cascade, colored_img, scaleFactor = 1.1):
 	return img_copy, i
 #cap = cv2.VideoCapture(0)
 
-cap = cv2.VideoCapture('videos/colonel_arnab_om.mp4')
+cap = cv2.VideoCapture('videos/arnab_om.mp4')
 i=0
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc('X','V','I','D')

@@ -9,9 +9,11 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-duration_per_frame = 105/2619
+#duration_per_frame = 105/2619
+duration_per_frame = 3250/81263
 # [90:350, 20:620]]
-src = 'videos/2_to_8.mp4'
+
+src = 'videos/TIMES_NOW_4_10_2016.mp4'
 cap = cv2.VideoCapture(src)
 ret, frame1 = cap.read()
 
@@ -40,7 +42,7 @@ cv2.normalize(hist18, hist18, 0, 255, cv2.NORM_MINMAX)
 cv2.normalize(hist19, hist19, 0, 255, cv2.NORM_MINMAX)
 #========================================================================
 
-B_coeff = {}
+#B_coeff = {}
 x = []
 y = []
 frame_count = 1
@@ -50,7 +52,7 @@ while 1:
     ret, frame2 = cap.read()
     if ret:
         frame_count += 1
-        cv2.imshow('Frame', frame2)
+        #cv2.imshow('Frame', frame2)
         frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2HSV)
 
         hist21 = cv2.calcHist( [frame2[0:150, 0:200]], [0, 1], None, [180, 256], [0, 180, 0, 256] )
@@ -86,7 +88,7 @@ while 1:
 
         d = (d1+d2+d3+d4+d5+d6+d7+d8+d9)/9
 
-        B_coeff[frame_count] = 1 - d
+        #B_coeff[frame_count] = 1 - d
         
         x.append(frame_count*duration_per_frame)
         y.append(1 - d)

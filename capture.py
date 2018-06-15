@@ -11,17 +11,16 @@ def detect_faces(i, f_cascade, colored_img, scaleFactor = 1.1):
 	for (x, y, w, h) in faces:
 		i+=1
 		face = img_copy[y:y+h, x:x+w]
-		cv2.imwrite('faces/%3d.jpg'%i, face)
+		cv2.imwrite('arpit/arpit%3d.jpg'%i, face)
 		cv2.rectangle(img_copy, (x, y), (x+w, y+h), (0, 255, 0), 2)              
 		#print(x, y, w, h)
 	return img_copy, i
-#cap = cv2.VideoCapture(0)
-
 cap = cv2.VideoCapture('videos/arnab_om.mp4')
+
 i=0
 # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
-out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+#fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
+#out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
 
 haar_face_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_frontalface_alt.xml')
 
@@ -31,9 +30,9 @@ while(cap.isOpened()):
 		
 		# write the frame
 		faces, i = detect_faces(i, haar_face_cascade, frame)
-		#out.write(faces)
+		#out.write(frame)
 		cv2.imshow('frame',faces)
-		k = cv2.waitKey(10) & 0xff
+		k = cv2.waitKey(1) & 0xff
 		if k == ord('q'):
 			break
 	else:

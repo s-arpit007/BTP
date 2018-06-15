@@ -120,7 +120,7 @@ class Vision:
 
 				pts = cv2.boxPoints(ret)
 				pts = np.int0(pts)
-				Photo = cv2.polylines(frame,[pts],True, (255, 0, 0),2)
+				Photo = cv2.polylines(frame,[pts],True, (255, 0, 0),1)
 				cv2.imshow('Play', Photo)
 
 				k = cv2.waitKey(10) & 0xff

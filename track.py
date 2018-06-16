@@ -39,6 +39,8 @@ for (x, y, w, h) in faces:
 term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 font = cv2.FONT_HERSHEY_SIMPLEX
 
+print("Opening video...")
+
 while 1:
 	ret, frame = cap.read()
 	if ret:
@@ -47,13 +49,14 @@ while 1:
 			dst = cv2.calcBackProject([hsv], [0], speaker.hist, [0,180], 1,)
 			ret, track_window = cv2.CamShift(dst, speaker.window, term_crit)
 
-			pts = cv2.boxPoints(ret)
-			pts = np.int0(pts)
-			frame = cv2.polylines(frame,[pts],True, (255, 255, 255),2)
+			(x1, x2, x3, x4) = (int(track_window[0]), int(track_window[1]), int(track_window[2]), int(track_window[3]))
+
+			cv2.rectangle(frame, (x1, x2), (x1+x3, x2+x4), (0, 255, 0), 2)
 			cv2.putText(frame, str(speaker.roll), (int(ret[0][0]), int(ret[0][1])), font, 0.5, (255, 255, 255), 1)
 		cv2.imshow('Frame', frame)
 		k = cv2.waitKey(10) & 0xff
 		if k == 27 or k == ord('q'):
+			print("Closing Video...")
 			break
 	else:
 		break

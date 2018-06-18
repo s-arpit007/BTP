@@ -9,11 +9,13 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-#duration_per_frame = 105/2619
-duration_per_frame = 3250/81263
+#duration_per_frame = 164/4086
+
+duration_per_frame = 105/2619
+#duration_per_frame = 3250/81263
 # [90:350, 20:620]]
 
-src = 'videos/TIMES_NOW_4_10_2016.mp4'
+src = 'videos/2_to_8.mp4'
 cap = cv2.VideoCapture(src)
 ret, frame1 = cap.read()
 

@@ -47,8 +47,6 @@ while 1:
 		
 		faces = f_cascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5)               # new
 		if len(faces) > 0:
-			#  new
-			#  Making a list of faces in a frame with their hsv, histogram and image
 			for (x, y, w, h) in faces:
 				f_hsv = cv2.cvtColor(frame[y-10:y+h, x:x+w], cv2.COLOR_BGR2HSV)
 				f_hist = cv2.calcHist([f_hsv], [0], None, [180], [0,180])
@@ -106,11 +104,11 @@ while 1:
 #				if cv2.compareHist(h1, h2, cv2.HISTCMP_BHATTACHARYYA) < 0.5:
 				cv2.rectangle(frame, (x1, x2), (x1+x3, x2+x4), (0, 255, 0), 2)
 				cv2.putText(frame, str(face.identity), (x1, x2) ,font, 1, (255, 255, 255), 2)
-			
+		
 		cv2.imshow('Play', frame)
 		allFaces.clear()
 		i.clear()
-		k = cv2.waitKey(10) & 0xff
+		k = cv2.waitKey(1) & 0xff
 		if k == 27 or k == ord('q'):
 			break
 	else:

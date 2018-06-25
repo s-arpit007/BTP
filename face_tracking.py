@@ -107,22 +107,35 @@ class Vision:
 	'''
 
 	def track(self):
-		cap = cv2.VideoCapture(self.__video)
-		r,h,c,w = 150,90,200,125
-		track_window = (c,r,w,h)
+		cap = cv2.VideoCapture(0)
+		#r,h,c,w = 150,90,200,125
+		while 1:
+			ret ,frame = cap.read()
+		#track_window = (c,r,w,h)
+			face = self.__haar_face.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+			if len(face)>0:
+				break
+		for (x, y, w, h) in face:
+			track_windo = (x, y, w, h)
+			
+		roi = frame[y:y+h, x:x+w]
+		f_hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+		hist = cv2.calcHist([f_hsv],[0], None,[180],[0,180])
+		cv2.normalize(hist, hist,0,255,cv2.NORM_MINMAX)
 		term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
+
 		while (1):
 			ret ,frame = cap.read()
 			if ret:
 				hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-				dst = cv2.calcBackProject([hsv], [0], self.__hist, [0,180], 1)
-				ret, track_window = cv2.CamShift(dst, track_window, term_crit)
+				#dst = cv2.calcBackProject([hsv], [0], self.__hist, [0,180], 1)
+				dst = cv2.calcBackProject([hsv], [0], hist, [0,180], 1)
 
-				pts = cv2.boxPoints(ret)
-				pts = np.int0(pts)
-				Photo = cv2.polylines(frame,[pts],True, (255, 0, 0),1)
-				cv2.imshow('Play', Photo)
+				ret, track_window = cv2.CamShift(dst, track_windo, term_crit)
 
+				cv2.rectangle(frame, (track_window[0], track_window[1]), (track_window[0]+track_window[2], track_window[3]+track_window[1]), (0, 255, 0), 1)
+				cv2.imshow('Play', frame)
+				
 				k = cv2.waitKey(10) & 0xff
 				if k == 27 or k == ord('q'):
 					break

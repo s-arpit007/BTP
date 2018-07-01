@@ -37,7 +37,10 @@ class MFTracker_Face:
 		self.m_FaceDataReady = False
 
 
-	def set_mftrackerFace_Data(self, faceGlobalID, faceID, window, faceDetectionState):
+	def set_mftrackerFace_Data(self, mftracker, detectedFaceCount, faceID):
+		faceGlobalID = mftracker.GlobalNum
+		window = mftracker.m_DetectedFace_WindowArray[ detectedFaceCount ]
+		faceDetectionState = mftracker.m_DetectedFace_StateArray[ detectedFaceCount ]
 		self.m_FaceDataReady = True
 		self.m_FaceGlobalID = faceGlobalID
 		self.m_FaceID = faceID
@@ -53,7 +56,10 @@ class MFTracker_Face:
 		self.m_TimeSpan_FaceTrackLoss = -1
 
 
-	def update_mftrackerFace_Data(self, frame, faceIsolated, colMatchVal, faceDetectionState, window):
+	def update_mftrackerFace_Data(self, mftracker, ascDetectedFaceIndx, faceIsolated):
+		window = mftracker.m_DetectedFace_WindowArray[ ascDetectedFaceIndx ]
+		frame = mftracker.CurrFrame
+		faceDetectionState = mftracker.m_DetectedFace_StateArray[ ascDetectedFaceIndx ]
 		self.m_FaceDataReady = True
 		self.m_Face_Window = window
 		self.m_Face = frame[window[1]:window[1]+window[3], window[0]:window[0]+window[2]]
@@ -61,7 +67,7 @@ class MFTracker_Face:
 		self.m_HSVHist = cv2.calcHist([self.m_FaceHSV], [0], None, [180], [0, 180])
 		cv2.normalize(self.HSVHist, self.HSVHist, 0, 255, cv2.NORM_MINMAX)     # HSV Histogram
 		self.m_FaceTracked = True
-		self.m_ColMatchVal = colMatchVal
+		self.m_ColMatchVal = 1.0
 		self.m_FaceIsolated = faceIsolated
 		self.m_FaceWithinScene = True
 		self.m_FaceDetectionState = faceDetectionState
@@ -168,6 +174,14 @@ class MFTracker:
 		self.m_CurrFaceNum = self.m_ActiveFaceNum + self.m_PassiveFaceNum
 
 
+	def getAvailableFaceIndx(self):
+		for counter in range( self.MaxFaceNum ):
+			if not mftracker.m_FaceSet[ counter ].m_FaceDataReady:
+				availableFaceIndx = counter
+				break
+		return availableFaceIndx
+
+
 	def reset_mftracker_Reasoning_Data(self):
 		self.m_Tracked_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum))
 		self.m_Detected_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum))
@@ -258,9 +272,92 @@ class MFTracker:
 		self.m_MFTrackerReasoningDataReady = True
 
 
-#	def getAvailableIndex(self):
+def computeIntervalOverlap_1D(s1, e1, s2, e2):
+	if s1 <= s2:
+		if e1 <= e2:
+			return 0
+		if ( s2 < e1 ) and ( e1 < e2 ):
+			return e1 - s2
+		if e1 > e2:
+			return e2 - s2
+
+	if ( s1 > s2 ) and ( s1 < e2 ):
+		if e1 <= e2:
+			return e1 - s1
+		if e1 > e2:
+			return e2 - s2
+	if s1 > e2:
+		return 0
+
+
+
+def computeIntervalOverlap_2D( (x1, y1, w1, h1), (x2, y2, w2, h2) ):
+	s1 = (x1, y1)
+	e1 = (x1 + w1, y1 + h1)
+	s2 = (x2, y2)
+	e2 = (x2 + w2, y2 + h2)
+
+	overlapX = computeIntervalOverlap_1D( s1[0], e1[0], s2[0], e2[0] )
+	overlapY = computeIntervalOverlap_1D( s2[1], e2[1], s2[1], e2[1] )
+	return overlapX * overlapY
+
+
+
 
 def procesActiveFace(mftracker, faceIndx, faceCount):
+	
+	invFaceArea = 1.0 / ( mftracker.m_FaceSet[ faceIndx ].m_Face_Window[2] * mftracker.m_FaceSet[ faceIndx ].m_Face_Window[3] )
+	if mftracker.m_FaceSet[ faceIndx ].m_ColMatchVal > mftracker.m_ColMatchThreshold:
+		if mftracker.m_DetectedFaceNum_OverlappedWith_TrackedFaceRegion_Array[ faceCount ] > 0:
+			ascDetectedFaceIndx = -1
+			maxOverlapVal = -1.0
+			for detectedFaceCount in range( mftracker.m_CurrDetectedFaceNum ):
+				overlapVal = mftracker.m_Tracked_Detected_FaceRegionOverlap_Matrix[ faceCount ][ detectedFaceCount ]
+				if overlapVal > maxOverlapVal:
+					maxOverlapVal = overlapVal
+					ascDetectedFaceIndx = detectedFaceCount
+
+			if ( mftracker.m_Detected_Face2Face_Overlap_Array[ ascDetectedFaceIndx ] == 0 ) and ( mftracker.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array[ ascDetectedFaceIndx ] == 1):
+				faceIsolated = True
+				# need to be reviewed
+				mftracker.m_FaceSet[ faceIndx ].update_mftrackerFace_Data(mftracker, ascDetectedFaceIndx, faceIsolated)
+
+			else:
+				mftracker.m_FaceSet[ faceIndx ].m_Face_Window = mftracker.m_DetectedFace_WindowArray[ ascDetectedFaceIndx ]
+				mftracker.m_FaceSet[ faceIndx ].m_FaceTracked = True
+				mftracker.m_FaceSet[ faceIndx ].m_FaceIsolated = False
+				mftracker.m_FaceSet[ faceIndx ].m_FaceDetectionState = mftracker.m_DetectedFace_StateArray[ ascDetectedFaceIndx ]
+				mftracker.m_FaceSet[ faceIndx ].m_TimeSpan_FaceTrackLoss = -1
+		else:
+			mftracker.m_FaceSet[ faceIndx ].m_FaceDetectionState = 0
+			mftracker.m_FaceSet[ faceIndx ].m_FaceTracked = True
+			mftracker.m_FaceSet[ faceIndx ].m_FaceIsolated = not ( mftracker.m_Tracked_Face2Face_Overlap_Array[ faceCount ] > 0 )
+	else:
+		if mftracker.m_DetectedFaceNum_OverlappedWith_TrackedFaceRegion_Array[ faceCount ] > 0:
+			ascDetectedFaceIndx = -1
+			maxOverlapVal = -1.0
+			for detectedFaceCount in range( mftracker.m_CurrDetectedFaceNum ):
+				overlapVal = mftracker.m_Tracked_Detected_FaceRegionOverlap_Matrix[ faceCount ][ detectedFaceCount ]
+				if overlapVal > maxOverlapVal:
+					maxOverlapVal = overlapVal
+					ascDetectedFaceIndx = detectedFaceCount
+
+			if ( mftracker.m_Detected_Face2Face_Overlap_Array[ ascDetectedFaceIndx ] == 0 ) and ( mftracker.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array[ ascDetectedFaceIndx ] == 1 ):
+				faceIsolated = True
+				# needs to be reviewed
+				mftracker.m_FaceSet[ faceIndx ].update_mftrackerFace_Data(mftracker, ascDetectedFaceIndx, faceIsolated)
+
+			else:
+				mftracker.m_FaceSet[ faceIndx ].m_Face_Window = mftracker.m_DetectedFace_WindowArray[ ascDetectedFaceIndx ]
+				mftracker.m_FaceSet[ faceIndx ].m_FaceTracked = True
+				mftracker.m_FaceSet[ faceIndx ].m_FaceIsolated = False
+				mftracker.m_FaceSet[ faceIndx ].m_FaceDetectionState = mftracker.m_DetectedFace_StateArray[ ascDetectedFaceIndx ]
+				mftracker.m_FaceSet[ faceIndx ].m_TimeSpan_FaceTrackLoss = -1
+		else:
+			mftracker.m_FaceSet[ faceIndx ].m_FaceTracked = False
+			mftracker.m_FaceSet[ faceIndx ].m_TimeSpan_FaceTrackLoss = 0
+
+	mftracker.m_FaceSet[ faceIndx ].m_FaceWithinScene = True
 
 
 def processNewFaces(mftracker):
@@ -286,8 +383,7 @@ def processNewFaces(mftracker):
 
 					if mftracker.m_Detected_Face2Face_Overlap_Array[ detectedFaceCount ] == 0:
 						faceIsolated = True
-						# need to be reviewed
-						update_mftrackerFace_Data( mftracker.CurrFrame, faceIsolated,  )
+						mftracker.m_FaceSet[ bestPassiveFaceIndx ].update_mftrackerFace_Data( mftracker, detectedFaceCount, faceIsolated )
 
 					else:
 						mftracker.m_FaceSet[ bestPassiveFaceIndx ].m_Face_Window = mftracker.m_DetectedFace_WindowArray[ detectedFaceCount ]
@@ -297,16 +393,14 @@ def processNewFaces(mftracker):
 						mftracker.m_FaceSet[ bestPassiveFaceIndx ].m_TimeSpan_FaceTrackLoss = -1
 			
 			if not passiveFaceFound:
-				faceID = -1
-				getAvailableFaceIndx()
+				faceID = mftracker.getAvailableFaceIndx()
 				if (faceID >= 0) and ( faceID < mftracker.MaxFaceNum ):
 					mftracker.m_GlobalNum += 1
-					
-					# need to be reviewed
-					mftracker.m_FaceSet[ faceID ].set_mftrackerFace_Data()
+					mftracker.m_FaceSet[ faceID ].set_mftrackerFace_Data( mftracker, detectedFaceCount, faceID )
 				else:
 					print(" Face ARRAY OVERFLOW ")
-			
+
+
 def multifacetracker(mftracker):
 	term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 
@@ -354,8 +448,7 @@ def multifacetracker(mftracker):
 
 '''
 functions need to be implemented
-1. getAvailableFaceIndx()
-2. computeIntervalOverlap_2D()
-3. processActiveFace()
-
+1. getAvailableFaceIndx() - --------------------> Done
+2. computeIntervalOverlap_2D()  ----------------> Done
+3. processActiveFace()  ------------------------> Done
 '''

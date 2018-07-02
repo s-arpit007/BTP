@@ -5,10 +5,10 @@ import numpy as np
 
 class MFTracker_Face:
 
-	def __init__(self, (x, y, w, h)=(-1, -1, -1, -1)):
+	def __init__(self, window=(-1, -1, -1, -1)):
 		self.m_FaceGlobalID = -1                                               # Global ID
 		self.m_FaceID = -1                                                     # FaceID in the Tracker List
-		self.m_Face_Window = (x, y, w, h)                                      # Face Window tuple
+		self.m_Face_Window = window                                      # Face Window tuple
 		self.m_Face = None                                                     # Face image object
 		self.m_FaceHSV = None
 		self.m_HSVHist = None
@@ -39,21 +39,53 @@ class MFTracker_Face:
 
 	def set_mftrackerFace_Data(self, mftracker, detectedFaceCount, faceID):
 		faceGlobalID = mftracker.GlobalNum
+		frame = mftracker.CurrFrame
 		window = mftracker.m_DetectedFace_WindowArray[ detectedFaceCount ]
 		faceDetectionState = mftracker.m_DetectedFace_StateArray[ detectedFaceCount ]
 		self.m_FaceDataReady = True
+		print("dataready = ", end="")
+		print(self.m_FaceDataReady)
+		
 		self.m_FaceGlobalID = faceGlobalID
+		print("faceglobalID = ", end="")
+		print(self.m_FaceGlobalID)
+		
 		self.m_FaceID = faceID
+		print("faceID = ", end="")
+		print(self.m_FaceID)
+		
 		self.m_Face_Window = window
+		print("window = ", end="")
+		print(self.m_Face_Window)
+		
 		self.m_Face = frame[window[1]:window[1]+window[3], window[0]:window[0]+window[2]]
+		print("face = ", end="")
+		print(type(self.m_Face))
+		
 		self.m_FaceHSV = cv2.cvtColor(self.m_Face, cv2.COLOR_BGR2HSV)
+		print("hsv = ", end="")
+		print(type( self.m_FaceHSV ))
+		
 		self.m_HSVHist = cv2.calcHist([self.m_FaceHSV], [0], None, [180], [0, 180])
-		cv2.normalize(self.HSVHist, self.HSVHist, 0, 255, cv2.NORM_MINMAX)     # HSV Histogram
+		cv2.normalize(self.m_HSVHist, self.m_HSVHist, 0, 255, cv2.NORM_MINMAX)
+		print("hist = ", end="")
+		print(type(self.m_HSVHist))
+		
 		self.m_FaceTracked = True
+		print("facetracked = ", end="")
+		print(self.m_FaceTracked)
+		
 		self.m_FaceIsolated = True
+		print("faceisolated = ", end="")
+		print(self.m_FaceIsolated)
+
 		self.m_FaceWithinScene = True
+		print("facewithinscene = ", end="")
+		print(self.m_FaceWithinScene)
+
 		self.m_FaceDetectionState = faceDetectionState
 		self.m_TimeSpan_FaceTrackLoss = -1
+
 
 
 	def update_mftrackerFace_Data(self, mftracker, ascDetectedFaceIndx, faceIsolated):
@@ -84,8 +116,8 @@ class MFTracker:
 		self.CurrFrame = frame
 
 		# Current frame's HSV transform
-		if frame:
-			self.CurrHSVFrame = cv2.cvtColor(self.CurrFrame, cv2.COLOR_BGR2HSV)
+		if frame is not None:
+			self.CurrHSVFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 		else:
 			self.CurrHSVFrame = None
 		
@@ -102,19 +134,19 @@ class MFTracker:
 		self.m_CurrFaceNum = 0
 
 		# Array of MFTracker_Face objects for current faces
-		self.m_FaceSet = []	
+		self.m_FaceSet = [MFTracker_Face() for i in range(maxfacenum)]
 
 		# No. of faces in active state
 		self.m_ActiveFaceNum = 0
 
 		# Array of FaceID's for active faces
-		self.m_ActiveFaceIndxVec = np.zeros((self.MaxFaceNum))
+		self.m_ActiveFaceIndxVec = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# No. of faces in passive state
 		self.m_PassiveFaceNum = 0
 
 		# Array of FaceID's for passive faces
-		self.m_PassiveFaceIndxVec = np.zeros((self.MaxFaceNum))
+		self.m_PassiveFaceIndxVec = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# No. of detected faces in current frame
 		self.m_CurrDetectedFaceNum = 0
@@ -123,7 +155,7 @@ class MFTracker:
 		self.m_DetectedFace_WindowArray = []
 
 		# Array of Face detection state
-		self.m_DetectedFace_StateArray = np.zeros((self.MaxFaceNum))
+		self.m_DetectedFace_StateArray = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# Thresholds and Properties for use in Tracking
 		self.m_ColMatchThreshold = colmatchthreshold
@@ -138,16 +170,16 @@ class MFTracker:
 		self.m_MaxTimeSpan_FaceTrackLoss = 0
 
 		# Array Storing the Number of Detected Face Regions Array Storing the Number of Detected Face Regions
-		self.m_DetectedFaceNum_OverlappedWith_TrackedFaceRegion_Array = np.zeros((self.MaxFaceNum))
+		self.m_DetectedFaceNum_OverlappedWith_TrackedFaceRegion_Array = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# Array Storing the Number of Tracked Face Regions Overlapping with each Detected Face Region
-		self.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array = np.zeros((self.MaxFaceNum))
+		self.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# Array Storing the Number of Detected Faces Overlapping Each Other
-		self.m_Detected_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum))
+		self.m_Detected_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# Array Storing the Number of Tracked Faces Overlapping Each Other
-		self.m_Tracked_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum))
+		self.m_Tracked_Face2Face_Overlap_Array = np.zeros((self.MaxFaceNum), dtype=int)
 
 		# True if Reasoning Data is ready
 		self.m_MFTrackerReasoningDataReady = False
@@ -160,10 +192,8 @@ class MFTracker:
 	def getActivePassiveFaceData(self):
 		self.m_ActiveFaceNum = 0
 		self.m_PassiveFaceNum = 0
-		i = 0
 
-		for face in self.m_FaceSet:
-			i += 1
+		for i, face in enumerate(self.m_FaceSet):
 			if face.m_FaceDataReady:
 				if face.m_FaceTracked:
 					self.m_ActiveFaceIndxVec[self.m_ActiveFaceNum] = i
@@ -176,10 +206,11 @@ class MFTracker:
 
 	def getAvailableFaceIndx(self):
 		for counter in range( self.MaxFaceNum ):
-			if not mftracker.m_FaceSet[ counter ].m_FaceDataReady:
-				availableFaceIndx = counter
-				break
-		return availableFaceIndx
+			if not self.m_FaceSet[ counter ].m_FaceDataReady:
+				return counter
+			else:
+				return -1
+		return -1
 
 
 	def reset_mftracker_Reasoning_Data(self):
@@ -291,16 +322,15 @@ def computeIntervalOverlap_1D(s1, e1, s2, e2):
 
 
 
-def computeIntervalOverlap_2D( (x1, y1, w1, h1), (x2, y2, w2, h2) ):
-	s1 = (x1, y1)
-	e1 = (x1 + w1, y1 + h1)
-	s2 = (x2, y2)
-	e2 = (x2 + w2, y2 + h2)
+def computeIntervalOverlap_2D( w1, w2 ):
+	s1 = (w1[0], w1[1])
+	e1 = (w1[0] + w1[2], w1[1] + w1[3])
+	s2 = (w2[0], w2[1])
+	e2 = (w2[0] + w2[2], w2[1] + w2[3])
 
 	overlapX = computeIntervalOverlap_1D( s1[0], e1[0], s2[0], e2[0] )
 	overlapY = computeIntervalOverlap_1D( s2[1], e2[1], s2[1], e2[1] )
 	return overlapX * overlapY
-
 
 
 
@@ -365,7 +395,7 @@ def processNewFaces(mftracker):
 	for detectedFaceCount, detected_window in enumerate( mftracker.m_DetectedFace_WindowArray ):
 		invFaceArea = 1.0 / ( detected_window[2] * detected_window[3] )
 		
-		if mftracker.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array[ detectedFaceCount ] = 0:
+		if mftracker.m_TrackedFaceNum_OverlappedWith_DetectedFaceRegion_Array[ detectedFaceCount ] == 0:
 			bestPassiveFaceIndx = -1
 			bestOverlapVal = -1
 			for faceCount, tracked_window in enumerate( mftracker.m_FaceSet ):
@@ -393,10 +423,12 @@ def processNewFaces(mftracker):
 						mftracker.m_FaceSet[ bestPassiveFaceIndx ].m_TimeSpan_FaceTrackLoss = -1
 			
 			if not passiveFaceFound:
+				faceID = -1
 				faceID = mftracker.getAvailableFaceIndx()
 				if (faceID >= 0) and ( faceID < mftracker.MaxFaceNum ):
-					mftracker.m_GlobalNum += 1
+					mftracker.GlobalNum += 1
 					mftracker.m_FaceSet[ faceID ].set_mftrackerFace_Data( mftracker, detectedFaceCount, faceID )
+					print("Set the data for new Face.")
 				else:
 					print(" Face ARRAY OVERFLOW ")
 
@@ -404,12 +436,13 @@ def processNewFaces(mftracker):
 def multifacetracker(mftracker):
 	term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 
-
 	mftracker.getActivePassiveFaceData()
 
 	if mftracker.m_ActiveFaceNum > 0:
 		for faceCount, faceIndx in enumerate( mftracker.m_ActiveFaceIndxVec ):
-			dst = cv2.calcBackProject([ mftracker.CurrHSVFrame ], [0], mftracker.m_FaceSet[ faceIndx ].HSVHist , [0,180], 1,)
+			print(" Face Index --> "+str(faceIndx))
+			print(type( mftracker.m_FaceSet[ faceIndx ].m_HSVHist ), type( mftracker.CurrHSVFrame ))
+			dst = cv2.calcBackProject([ mftracker.CurrHSVFrame ], [0], mftracker.m_FaceSet[ faceIndx ].m_HSVHist , [0,180], 1,)
 			ret, mftracker.m_FaceSet[ faceIndx ].m_Face_Window = cv2.CamShift(dst, mftracker.m_FaceSet[ faceIndx ].m_Face_Window, term_crit)
 		
 		mftracker.reset_mftracker_Reasoning_Data()
@@ -438,10 +471,11 @@ def multifacetracker(mftracker):
 						mftracker.m_FaceSet[ faceCount ].reset_mftrackerFace_Data()
 	else:
 		mftracker.reset_mftracker_Reasoning_Data()
-		mftracker.set_mftracekr_Reasoning_Data()
+		mftracker.set_mftracker_Reasoning_Data()
 
 		if mftracker.m_CurrDetectedFaceNum > 0:
 			processNewFaces(mftracker)
+			print("Processed a new Face..")
 		else:
 			print(" ActiveFaceNum = 0 AND DetectedFaceNum = 0")
 

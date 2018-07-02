@@ -1,6 +1,6 @@
 import cv2
-#import helper as hp
-#import numpy as np
+import helper as hp
+import numpy as np
 
 src = 'videos/TIMES_NOW_4_10_2016.mp4'
 cap = cv2.VideoCapture(src)
@@ -19,6 +19,7 @@ while 1:
 	if _:
 
 		mftracker.CurrFrame = frame
+		mftracker.CurrHSVFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 		mftracker.m_CurrDetectedFaceNum = len(mftracker.m_DetectedFace_WindowArray)
 
 		hp.multifacetracker(mftracker)

@@ -8,14 +8,16 @@ f_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_fr
 #profile_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_profileface.xml')
 
 
-mftracker = hp.MFTracker(maxfacenum=5, colmatchthreshold=0.4, faceregionthreshold=0.4)
+mftracker = hp.MFTracker(maxfacenum=20, colmatchthreshold=0.4, faceregionthreshold=0.4)
 term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 
 print("Opening Camera...")
 while 1:
 	_ ,frame = cap.read()
-	mftracker.m_DetectedFace_WindowArray = f_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
-
+	mftracker.m_DetectedFace_WindowArray.clear()
+	faces = f_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+	for face in faces:
+		mftracker.m_DetectedFace_WindowArray.append(( face[0], face[1], face[2], face[3] ))
 	if _:
 
 		mftracker.CurrFrame = frame

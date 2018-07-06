@@ -79,6 +79,7 @@ class Vision:
 
 				if ret:
 					faces = self.__haar_face.detectMultiScale(frame, scaleFactor=scaleFactor, minNeighbors=5)
+					print(faces)
 					for (x, y, w, h) in faces:
 						if save:
 							i+=1

@@ -3,6 +3,7 @@ import numpy as np
 #import imutils
 
 f_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_frontalface_alt.xml')
+p_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_profileface_alt.xml')
 
 class Face:
 
@@ -66,12 +67,10 @@ def confidence(ids, frame):
 	return False
 
 src = 0
-#src = "videos/2_to_8.mp4"
-#src = "videos/TIMES_NOW_4_10_2016.mp4"
 cap = cv2.VideoCapture(src)
 
 # Tracker
-multiFaceTracker = {}    #  {"identity" : Face()}
+multiFaceTracker = {}
 
 # face ids counter
 faceID = 0
@@ -104,6 +103,8 @@ while (cap.isOpened()):
 
 	if not multiFaceTracker:
 		faces = f_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+		profile = p_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+		
 		for face in faces:
 			(x, y, w, h) = [int(v) for v in face]
 
@@ -122,6 +123,13 @@ while (cap.isOpened()):
 			
 		if frameCounter%5 == 0:
 			faces = f_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+			profile = p_cascade.detectMultiScale(frame, scaleFactor=1.2, minNeighbors=5)
+			
+			for ( x, y, w, h ) in profile:
+				for ( x1, y1, w1, h1 ) in faces:
+					if is_inside( (x, y, w, h), (x1, y1, w1, h1) ):
+						# SOMETHING TO BE DONE
+			
 			for i, face in enumerate(faces):				
 				for key in ids_to_check:
 					(x, y, w, h) = [int(v) for v in face]

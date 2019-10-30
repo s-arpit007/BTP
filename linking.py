@@ -1,7 +1,8 @@
 from imutils import paths
 from spherecluster import SphericalKMeans
 from utilities import *
-
+import pandas as pd
+import numpy as np
 
 if os.path.exists(tracks_path+"/cooccurance.csv"):
 	os.remove(tracks_path+"/cooccurance.csv")
@@ -10,6 +11,7 @@ if os.path.exists(tracks_path+"/embedding.csv"):
 
 
 # Generate cooccurance matrix
+# By reading csv file
 folders = os.listdir(tracks_path)
 csv_file = tracks_path+"/cooccurance.csv"
 with open( csv_file, mode='a') as employee_file:
@@ -26,11 +28,8 @@ matrix = cooccurance_matrix(csv_file)
 
 # load our serialized face embedding model from disk
 print("[INFO] loading face recognizer...")
-embedder = cv2.dnn.readNetFromTorch("opencv-face-recognition/openface_nn4.small2.v1.t7")
+embedder = cv2.dnn.readNetFromTorch("PATH_TO_OPENFACE_FILE")
 
-# model = loadVggFaceModel()
-# model.load_weights('files/vgg_face_weights.h5')
-# vgg_face_descriptor = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
 
 # grab the paths to the input images in our dataset
 print("[INFO] quantifying faces...")

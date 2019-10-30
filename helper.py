@@ -446,6 +446,8 @@ def multifacetracker(mftracker):
 		else:
 			print(" ActiveFaceNum = 0 AND DetectedFaceNum = 0")
 
+def processActiveFace():
+	return True
 
 '''
 functions need to be implemented

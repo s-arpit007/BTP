@@ -5,6 +5,16 @@ import numpy as np
 src = 'videos/TIMES_NOW_4_10_2016.mp4'
 cap = cv2.VideoCapture(src)
 f_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_frontalface_alt.xml')
+
+if cv2.__version__.startswith('4.'):
+	print("The version of the opencv is 4.*.*")
+	use_spatial_propagation = False
+	inst = cv2.DISOpticalFlow.create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM)
+	inst.setUseSpatialPropagation(use_spatial_propagation)
+	inst.setFinestScale(2)
+	inst.setVariationalRefinementIterations(8)
+
+
 #profile_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_profileface.xml')
 
 

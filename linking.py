@@ -1,7 +1,7 @@
 from imutils import paths
 from spherecluster import SphericalKMeans
-from utilities import *
 import pandas as pd
+import utilities
 import numpy as np
 
 if os.path.exists(tracks_path+"/cooccurance.csv"):
@@ -9,6 +9,25 @@ if os.path.exists(tracks_path+"/cooccurance.csv"):
 if os.path.exists(tracks_path+"/embedding.csv"):
 	os.remove(tracks_path+"/embedding.csv")
 
+
+def sort(src, folder, csv_file):
+	'''
+	
+	'''
+	speaker = folder
+	files = os.listdir(src+'/'+folder)
+	frame_start = 1000000
+	frame_end = 0
+
+	for file in files:
+		frame = int(file.split('_')[1].split('.')[0][1:])
+		if (frame > frame_end):
+			frame_end = frame
+		if (frame < frame_start):
+			frame_start = frame
+	with open( csv_file , mode='a') as file:
+		writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+		writer.writerow([int(speaker[1:]), frame_start, frame_end])
 
 # Generate cooccurance matrix
 # By reading csv file
@@ -42,14 +61,13 @@ frames = []
 for (i, imagePath) in enumerate(imagePaths):
 	identity = imagePath.split('/')[-2]
 	frame = imagePath.split('/')[-1].split('_')[0][1:]
-	if (i+1)%1000 == 0:
+	if (i+1) % 1000 == 0:
 		print("[INFO] processing image {}/{}".format(i + 1, len(imagePaths)))
 	
 	image = cv2.imread(imagePath)
 	
 	faceBlob = cv2.dnn.blobFromImage(image, 1.0 / 255, (96, 96), (0, 0, 0), swapRB=True, crop=False)
 	embedder.setInput(faceBlob)
-	#vec = vgg_face_descriptor.predict(preprocess_image(imagePath))[0,:]
 	vec = embedder.forward()
 	vectors.append(vec.flatten())
 	identities.append(int(identity[1:]))
@@ -67,7 +85,7 @@ X = df.loc[:, '0':'127']
 Y = df['identities']
 
 print("[INFO] Finding cluster centroids ...")
-skm = SphericalKMeans(n_clusters = 1000, verbose=1, n_jobs=-2, rangedom_state=1)
+skm = SphericalKMeans(n_clusters = 100, verbose=1, n_jobs=-2, random_state=1)
 skm.fit(X)
 labels = skm.predict(X)
 df['labels'] = labels

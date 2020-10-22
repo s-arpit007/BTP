@@ -33,6 +33,16 @@ class Face:
 			return False
 		return True
 
+	@staticmethod
+	def gaussian(left_r=-80, right_r=80, sigma=30):
+
+		x = np.array([i for i in range(left_r, right_r)])
+
+		y = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(- (x ** 2) / (2 * sigma ** 2))
+		y = y.reshape((y.shape[0], 1))
+
+		return y
+
 def is_inside(box1, box2):
 	(x1, y1, w1, h1) = [int(v) for v in box1]
 	(x2, y2, w2, h2) = [int(v) for v in box2]

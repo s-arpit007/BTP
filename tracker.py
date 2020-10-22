@@ -2,8 +2,10 @@ import cv2, os
 import numpy as np
 #import imutils
 
-f_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_frontalface_alt.xml')
-p_cascade = cv2.CascadeClassifier('opencv-3.4.1/data/haarcascades/haarcascade_profileface_alt.xml')
+face_classifier = 'opencv-3.4.1/data/haarcascades/haarcascade_frontalface_alt.xml'
+f_cascade = cv2.CascadeClassifier(face_classifier)
+profile_classifier = 'opencv-3.4.1/data/haarcascades/haarcascade_profileface_alt.xml'
+p_cascade = cv2.CascadeClassifier(profile_classifier)
 
 class Face:
 
@@ -18,15 +20,16 @@ class Face:
 		path = r'facesKCF/speaker%i/'%self.identity
 		if not os.path.exists(path):
 			try:
-			    original_umask = os.umask(0)
-			    os.mkdir(path, mode=0o777)
+				original_umask = os.umask(0)
+				os.mkdir(path, mode=0o777)
 			finally:
-			    os.umask(original_umask)
+				os.umask(original_umask)
 
 		try:
 			cv2.imwrite(path+r'face%d.jpg'%self.no_faces, face)
 			self.no_faces += 1
-		except:
+		except Exception as err:
+			print(err)
 			return False
 		return True
 
@@ -36,7 +39,7 @@ def is_inside(box1, box2):
 	midX = (x1+h1/2)
 	midY = (y1+w1/2)
 
-	if x2 < midX and x2+h2 > midX and y2 < midY and y2+w2 > midY:
+	if x2 < midX < x2+h2 and y2 < midY < y2 + w2:
 		return True	
 
 	return False
@@ -46,7 +49,8 @@ def confidence(ids, frame):
 	try:
 		hist = cv2.calcHist( [image_hsv], [0, 1], None, [180, 256], [0, 180, 0, 256] )
 		cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
-	except:
+	except Exception as err:
+		print(err)
 		pass
 
 	(x, y, w, h) = [int(v) for v in multiFaceTracker[ids].newboundingbox]
@@ -54,12 +58,16 @@ def confidence(ids, frame):
 	try:
 		hist1 = cv2.calcHist( [face_hsv], [0, 1], None, [180, 256], [0, 180, 0, 256] )
 		cv2.normalize(hist1, hist1, 0, 255, cv2.NORM_MINMAX)
-	except:
+	except Exception as err:
+		print(err)
 		pass
+
 	score = 1.0
+
 	try:
 		score = cv2.compareHist(hist, hist1, cv2.HISTCMP_BHATTACHARYYA)
-	except:
+	except Exception as err:
+		print(err)
 		pass
 	if score > 0.72:
 		print(str(multiFaceTracker[ids].identity) + " lost its tracker with score : " +str(score))
@@ -87,7 +95,7 @@ ids_to_check = []
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-while (cap.isOpened()):
+while cap.isOpened():
 
 	ret, frame = cap.read()
 	frameCounter +=1

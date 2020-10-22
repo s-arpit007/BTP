@@ -4,6 +4,16 @@ from matplotlib import pyplot as plt
 from utilities import *
 from statistics import median
 
+
+def gaussian(left_r=-80, right_r=80, sigma=75):
+    x = np.array([i for i in range(left_r, right_r)])
+
+    y = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(- (x ** 2) / (2 * sigma ** 2))
+    y = y.reshape((y.shape[0], 1))
+
+    return y
+
+
 src = 0
 cam = cv2.VideoCapture(src)
 print("[INFO] Opening camera...")
@@ -92,3 +102,22 @@ while cam.isOpened():
 print("[INFO] Closing camera...")
 cam.release()
 cv2.destroyAllWindows()
+
+# Plotting
+plt.plot(activity, linewidth=1.0)
+plt.title("Activity at each frame")
+plt.ylabel('Disturbance in pixels')
+plt.xlabel('Frame number')
+plt.show()
+
+plt.plot(X, avg, linewidth=1.0)
+plt.title("Average (window size = 40)")
+plt.ylabel('Disturbance in pixels')
+plt.xlabel('Frame number')
+plt.show()
+
+plt.plot(X, med. linewidth=1.0)
+plt.title("Median (window size = 40)")
+plt.ylabel('Disturbance in pixels')
+plt.xlabel('Frame number')
+plt.show()

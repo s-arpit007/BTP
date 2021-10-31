@@ -32,6 +32,13 @@ results = sp.album(album_id=album_id)
 for i, result in enumerate(results):
     print(i+1, result)
     
+results = sp.me()
+print(results)
+
+artist_id = input("Artist ID:")
+results = sp.artist(artist_id=artist_id)
+print(results)
+    
 if os.path.exists(sp.auth_manager.cache_handler.cache_path):
     os.remove(sp.auth_manager.cache_handler.cache_path)
 else:

@@ -26,6 +26,12 @@ results = sp.playlist(playlist_id=id)
 for i, result in enumerate(results["tracks"]["items"]):
     print(i+1, result["track"]["name"], result['track']['album']['name'])
     
+album_id = input("Album ID:")
+results = sp.album(album_id=album_id)
+
+for i, result in enumerate(results):
+    print(i+1, result)
+    
 if os.path.exists(sp.auth_manager.cache_handler.cache_path):
     os.remove(sp.auth_manager.cache_handler.cache_path)
 else:

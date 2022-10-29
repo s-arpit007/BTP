@@ -23,6 +23,14 @@ class Face:
 		self.f_hist = hist
 		self.f_window = window
 		self.identity = -1
+		
+	def delete_face(self):
+		self.roll = 0
+		self.image = None
+		self.hsv = None
+		self.hist = None
+		self.window = None
+		self.active = False
 
 # ==============================
 src = 'videos/TIMES_NOW_4_10_2016.mp4'

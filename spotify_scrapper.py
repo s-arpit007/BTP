@@ -15,15 +15,17 @@ print("Done with Spotify")
 print(sp.auth_manager.get_access_token(as_dict=False))
 
 
-results = sp.current_user_playlists(limit=50)
+list_of_playlists = sp.current_user_playlists(limit=50)
 
-for i, result in enumerate(results["items"]):
+print("Name of the Playlists:")
+for i, result in enumerate(list_of_playlists["items"]):
     print(i+1, result["name"])
     
+# Get playlist ID to fetch details
 id = input("Playlist ID:")
-results = sp.playlist(playlist_id=id)
+playlist_details = sp.playlist(playlist_id=id)
     
-for i, result in enumerate(results["tracks"]["items"]):
+for i, result in enumerate(playlist_details["tracks"]["items"]):
     print(i+1, result["track"]["name"], result['track']['album']['name'])
     
 album_id = input("Album ID:")

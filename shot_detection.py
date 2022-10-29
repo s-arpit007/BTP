@@ -31,6 +31,16 @@ hist17 = cv2.calcHist([frame1[251:, 0:200]], [0, 1], None, [180, 256], [0, 180, 
 hist18 = cv2.calcHist([frame1[251:, 201:400]], [0, 1], None, [180, 256], [0, 180, 0, 256])
 hist19 = cv2.calcHist([frame1[251:, 401:]], [0, 1], None, [180, 256], [0, 180, 0, 256])
 
+hist = []
+
+for i in range(1, 4):
+    for j in range(1, 4):
+        if i==3:
+            i = i - 1
+        if j==3:
+            j = j - 1
+        hist.append(cv2.calcHist([frame1[0:150*i, 0:200*j]], [0, 1], None, [180, 256], [0, 180, 0, 256]))
+
 cv2.normalize(hist11, hist11, 0, 255, cv2.NORM_MINMAX)
 cv2.normalize(hist12, hist12, 0, 255, cv2.NORM_MINMAX)
 cv2.normalize(hist13, hist13, 0, 255, cv2.NORM_MINMAX)
